@@ -57,7 +57,7 @@ Tests executed on a cluster N1 with 8 virtual CPUs and 30GB of memory.
 The plots shows improvements for the parallel version on the local machine and on the cluster for both the algorithms. 
 
 Regarding the distributed version there are limitations due to the cluster used that isn't powerful than the local machine in terms of virtual CPUs, so the results are not faster. By incrementing the dimension of the input can be observed that:
-	* TF-IDF: with the incrementation in dimension the algorithm improves in time, we can affirm that with even more data or better with more CPUs, the improvements will show up
-	* Cosine Similarity: the formulation of that algorithm seems that cannot beneficiate of the map-reduce approach as the one before, so in a concrete version that part will be just parallelized
+ * TF-IDF: with the incrementation in dimension the algorithm improves in time, we can affirm that with even more data or better with more CPUs, the improvements will show up
+ * Cosine Similarity: the formulation of that algorithm seems that cannot beneficiate of the map-reduce approach as the one before, so in a concrete version that part will be just parallelized
 	
 Anyway, even with really slow times, the used cluster is able to handle dimensions much bigger taking advantage of RDDs with respect to Arrays and ParArrays in the other versions. In particular, local and parallel version can handle up to '~10000' instances of the books dataset, while with RDDs dimensions up to '~36000' can be computed. 
