@@ -23,7 +23,7 @@ object tfidfRecommender {
    * TFIDF calculation, local version
    *
    * @param documents array of couples ('documentID', 'document')
-   * @param regex     regular expression for split the documents
+   * @param regex     regular expression for split the documents (set to ',' for restaurant dataset)
    * @return          array of couples ('documentID', map 'word' -> 'tfidf_value') 
    */
   private def calculateTFIDF_local(documents: Array[(String, String)], regex: String = " "): Array[(String, Map[String, Double])] = {
@@ -55,7 +55,7 @@ object tfidfRecommender {
     * TFIDF calculation, parallel version
     *
     * @param document parArray of couples ('documentID', 'document')
-    * @param regex    regular expression for split the documents
+    * @param regex    regular expression for split the documents (set to ',' for restaurant dataset)
     * @return         parArray of couples ('documentID', map 'word' -> 'tfidf_value') 
     */
   private def calculateTFIDF_parallel(documents: ParArray[(String, String)], regex: String = " "): ParArray[(String, Map[String, Double])] = {
@@ -85,7 +85,7 @@ object tfidfRecommender {
     * TFIDF calculation, distributed version
     *
     * @param document RDD of couples ('documentID', 'document')
-    * @param regex    regular expression for split the documents
+    * @param regex    regular expression for split the documents (set to ',' for restaurant dataset)
     * @return         RDD of couples ('documentID', map 'word' -> 'tfidf_value') 
     */
     private def calculateTFIDF(documents: RDD[(String, String)], regex: String = " "): RDD[(String, Map[String, Double])] = {
@@ -128,14 +128,13 @@ object tfidfRecommender {
   }
 
     /**
-    * TFIDF calculation, local version
+    * Cosine similarity between each document, local version
     *
-    * @param document RDD of couples ('documentID', 'document')25
-    * @param regex    regular expression for split the documents
-    * @return         RDD of couples ('documentID', map 'word' -> 'tfidf_value') 
+    * @param tfidfValues array with tfidf results
+    * @return            array with couples of documents and related cosine similarity
     */
-  def computeCosineSimilarity_local(dataset: Array[(String, Map[String, Double])]): Array[((String, String), Double)] = {
-    dataset.flatMap(x => dataset.map(y => (x, y)))
+  def computeCosineSimilarity_local(tfidfValues: Array[(String, Map[String, Double])]): Array[((String, String), Double)] = {
+    tfidfValues.flatMap(x => tfidfValues.map(y => (x, y)))
       .filter { case ((doc1, _), (doc2, _)) => doc1 < doc2 }
       .flatMap { case ((doc1, vector1), (doc2, vector2)) =>
         val similarity = cosineSimilarity(vector1, vector2)
@@ -143,16 +142,27 @@ object tfidfRecommender {
       }
   }
 
-  //Retrieve a recommendation for an example document, local version
+    /**
+    * Retrieve a recommendation for an example document, local version
+    *
+    * @param id          identifier of the example document 
+    * @param similarity  array of cosine similarities
+    * @return            array with the 10 best recommendations
+    */
   def getRecommendation_local(id: String, similarities: Array[((String, String), Double)]): Array[(String, Double)] = {
     val matches = similarities.flatMap { case ((id1, id2), value) => if (id1 == id) Some(id2, value) else if (id2 == id) Some(id1, value) else None }
     val sortedMatches = matches.sortBy { case (_, similarity) => -similarity }
     sortedMatches.take(10)
   }
 
-  //Cosine Similarity between each document, parallel version
-  def computeCosineSimilarity_parallel(dataset: ParArray[(String, Map[String, Double])]): ParArray[((String, String), Double)] = {
-    dataset.flatMap(x => dataset.map(y => (x, y)))
+    /**
+    * Cosine similarity between each document, parallel version
+    *
+    * @param tfidfValues parArray with tfidf results
+    * @return            parArray with couples of documents and related cosine similarity
+    */
+  def computeCosineSimilarity_parallel(tfidfValues: ParArray[(String, Map[String, Double])]): ParArray[((String, String), Double)] = {
+    tfidfValues.flatMap(x => tfidfValues.map(y => (x, y)))
       .filter { case ((doc1, _), (doc2, _)) => doc1 < doc2 }
       .flatMap { case ((doc1, vector1), (doc2, vector2)) =>
         val similarity = cosineSimilarity(vector1, vector2)
@@ -160,7 +170,13 @@ object tfidfRecommender {
       }
   }
 
-  //Retrieve a recommendation for an example document, parallel version
+    /**
+    * Retrieve a recommendation for an example document, parrallel version
+    *
+    * @param id          identifier of the example document 
+    * @param similarity  parArray of cosine similarities
+    * @return            array with the 10 best recommendations
+    */
   def getRecommendation_parallel(id: String, similarities: ParArray[((String, String), Double)]): Array[(String, Double)] = {
     val matches = similarities.flatMap { case ((id1, id2), value) => if (id1 == id) Some(id2, value) else if (id2 == id) Some(id1, value) else None }
     val sortedMatches = matches.toArray.sortBy { case (_, similarity) => -similarity }
@@ -168,9 +184,14 @@ object tfidfRecommender {
   }
 
 
-  //Cosine Similarity between each document, distributed version
-  def computeCosineSimilarity(rdd: RDD[(String, Map[String, Double])]): RDD[((String, String), Double)] = {
-    rdd.cartesian(rdd)
+    /**
+    * Cosine similarity between each document, distributed version
+    *
+    * @param tfidfValues RDD with tfidf results
+    * @return            RDD with couples of documents and related cosine similarity
+    */
+  def computeCosineSimilarity(tfidfValues: RDD[(String, Map[String, Double])]): RDD[((String, String), Double)] = {
+    tfidfValues.cartesian(tfidfValues)
       .filter { case ((doc1, _), (doc2, _)) => doc1 < doc2 }
       .flatMap { case ((doc1, vector1), (doc2, vector2)) =>
         val similarity = cosineSimilarity(vector1, vector2)
@@ -178,14 +199,26 @@ object tfidfRecommender {
       }
   }
 
-  //Retrieve a recommendation for an example document, distributed version
+    /**
+    * Retrieve a recommendation for an example document, distributed version
+    *
+    * @param id          identifier of the example document 
+    * @param similarity  RDD of cosine similarities
+    * @return            array with the 10 best recommendations
+    */
   def getRecommendation(id: String, similarities: RDD[((String, String), Double)]): Array[(String, Double)] = {
     val matches = similarities.flatMap { case ((id1, id2), value) => if (id1 == id) Some(id2, value) else if (id2 == id) Some(id1, value) else None }
     val sortedMatches = matches.sortBy { case (_, similarity) => -similarity }
     sortedMatches.take(10)
   }
   
-  //Test function, inputs: the dataset, a string identifying if the dataset is the "Books" one or the "Delivery"
+  /**
+    * Test function (local)
+    *
+    * @param documents  array of couples ('documentID', 'document')
+    * @param dataset    string to select the dataset, 'Books' or 'Restaurant'
+    * @return           array with the 10 best recommendations
+    */
   def getTestRecommendation(documents: Array[(String, String)], dataset: String) = {
     val example = documents(0)._1
 
@@ -196,7 +229,13 @@ object tfidfRecommender {
   }
 
 
-  //Get execution times, inputs: the dataset, a string identifying if the dataset is the "Books" one or the "Delivery"   
+    /**
+    * Get local execution times
+    *
+    * @param documents  array of couples ('documentID', 'document')
+    * @param dataset    string to select the dataset, 'Books' or 'Restaurant'
+    * @return           couple of times (tfidfTime, cosineSimilarityTime) in ms
+    */
   def getComputationTime_local(documents: Array[(String, String)], dataset: String): (Double, Double) = {
 
     val exampleID = documents(0)._1
@@ -235,6 +274,14 @@ object tfidfRecommender {
     ((t1 - t0) / 1000000, (t3 - t2) / 1000000)
   }
 
+
+    /**
+    * Get local parallel times
+    *
+    * @param documents  parArray of couples ('documentID', 'document')
+    * @param dataset    string to select the dataset, 'Books' or 'Restaurant'
+    * @return           couple of times (tfidfTime, cosineSimilarityTime) in ms
+    */
   def getComputationTime_parallel(documents: ParArray[(String, String)], dataset: String): (Double, Double) = {
 
     val exampleID = documents(0)._1
@@ -273,6 +320,14 @@ object tfidfRecommender {
     ((t1 - t0) / 1000000, (t3 - t2) / 1000000)
   }
 
+
+    /**
+    * Get distributed execution times
+    *
+    * @param documents  RDD of couples ('documentID', 'document')
+    * @param dataset    string to select the dataset, 'Books' or 'Restaurant'
+    * @return           couple of times (tfidfTime, cosineSimilarityTime) in ms
+    */
   def getComputationTime_distributed(documents: RDD[(String, String)], dataset: String): (Double, Double) = {
 
     val exampleID = documents.first._1
