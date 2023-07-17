@@ -13,11 +13,11 @@ Then a second dataset, for which the same algorithm can be executed, that is muc
 
 ## Execute code on Google Cloud Platform
 With all the dependencies installed, the code can be runned as follows:
-1. *Check if the code executes by running:
+1. * Check if the code executes by running:
    ```sh
    sbt run
    ```
-*Create an assembly *.jar* package using the following command (in the project directory):
+* Create an assembly *.jar* package using the following command (in the project directory):
    ```sh
    sbt package
    ```
