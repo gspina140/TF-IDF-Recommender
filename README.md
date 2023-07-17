@@ -17,7 +17,7 @@ With all the dependencies installed, the code can be runned as follows:
    ```sh
    sbt run
    ```
-* Create an assembly *.jar* package using the following command (in the project directory):
+   * Create an assembly *.jar* package using the following command (in the project directory):
    ```sh
    sbt package
    ```
