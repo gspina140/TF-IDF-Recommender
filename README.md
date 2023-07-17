@@ -28,7 +28,7 @@ With all the dependencies installed, the code can be runned as follows:
    gsutil cp package.jar gs://bucketName
    ```
 5. Copy the datasets in the bucket with the command before (necessary files are: 'train_full.csv' and 'orders.csv' for Delivery dataset, 'Books.csv' for Books)
-* Be careful to change tha Paths variables in the code with the 'bucketName' defined   
+   * Be careful to change tha Paths variables in the code with the 'bucketName' defined   
 6. Create a Compute Engine Cluster on Google Cloud Platform
 7. Create and send a new job by:
    1. Selecting the created cluster
