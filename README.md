@@ -40,7 +40,7 @@ With all the dependencies installed, the code can be runned as follows:
 Three versions of the algorthm are compared to empirically found if the problem under analysis enjoys the distributed paradigm. There is a sequential version, a parallel and a distributed one. The differences are mainly in the data type, Array for sequential, ParArray for parallel and RDD for distributed.
 
 ### Local
-Tests executed on an Intel Core i7-8550U chip, 4 cores and 8 threads.
+Tests executed on an Intel Core i7-8550U chip, 4 cores, 8 threads and 16GB of memory.
 
 ![local](img/tfidfLocal.png)
 
